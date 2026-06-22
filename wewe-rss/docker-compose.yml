@@ -1,0 +1,56 @@
+services:
+  db:
+    image: mysql:8.3.0
+    container_name: wewe-rss-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-wewe_rss_pwd}
+      MYSQL_DATABASE: wewe-rss
+      TZ: Asia/Shanghai
+    command: --mysql-native-password=ON
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_ROOT_PASSWORD:-wewe_rss_pwd}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - wewe-rss
+
+  wewe-rss:
+    image: cooderl/wewe-rss:latest
+    container_name: wewe-rss
+    restart: unless-stopped
+    ports:
+      - "${PORT:-4000}:4000"
+    environment:
+      # 数据库连接（指向上面的 db 服务）
+      DATABASE_URL: mysql://root:${DB_ROOT_PASSWORD:-wewe_rss_pwd}@db:3306/wewe-rss?schema=public&connect_timeout=30&pool_timeout=30&socket_timeout=30
+      # 后台管理 / 接口授权码（请改成你自己的，/feeds 订阅链接不需要它）
+      AUTH_CODE: ${AUTH_CODE:-please-change-me}
+      # 对外访问地址，用于生成完整 RSS 链接（部署到服务器请改成实际域名/IP）
+      SERVER_ORIGIN_URL: ${SERVER_ORIGIN_URL:-http://localhost:4000}
+      # 全文输出，满足"摘要+链接"需求（占用内存稍高，可按需关闭）
+      FEED_MODE: fulltext
+      # 定时抓取订阅源：默认每天 05:35 与 17:35
+      CRON_EXPRESSION: ${CRON_EXPRESSION:-35 5,17 * * *}
+      # 连续更新间隔，降低被风控概率
+      UPDATE_DELAY_TIME: 60s
+      # 每分钟最大请求数
+      MAX_REQUEST_PER_MINUTE: 60
+      # 清理正文多余 HTML
+      ENABLE_CLEAN_HTML: "true"
+      TZ: Asia/Shanghai
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - wewe-rss
+
+volumes:
+  db_data:
+
+networks:
+  wewe-rss:
+    name: wewe-rss

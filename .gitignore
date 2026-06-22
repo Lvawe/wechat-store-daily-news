@@ -1,0 +1,18 @@
+# ===== 敏感信息：禁止提交 =====
+# WeWe RSS 环境变量（含 DB 密码、AUTH_CODE）
+.env
+**/.env
+
+# ===== 数据与缓存 =====
+# WeWe RSS SQLite 数据目录
+data/
+**/data/
+
+# ===== 系统文件 =====
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+# ===== 依赖 =====
+node_modules/
+**/node_modules/

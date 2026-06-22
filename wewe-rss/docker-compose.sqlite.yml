@@ -1,0 +1,18 @@
+services:
+  wewe-rss:
+    image: cooderl/wewe-rss-sqlite:latest
+    container_name: wewe-rss
+    restart: unless-stopped
+    ports:
+      - "${PORT:-4000}:4000"
+    environment:
+      DATABASE_TYPE: sqlite
+      AUTH_CODE: ${AUTH_CODE:-please-change-me}
+      SERVER_ORIGIN_URL: ${SERVER_ORIGIN_URL:-http://localhost:4000}
+      FEED_MODE: fulltext
+      CRON_EXPRESSION: ${CRON_EXPRESSION:-35 5,17 * * *}
+      UPDATE_DELAY_TIME: 60s
+      ENABLE_CLEAN_HTML: "true"
+      TZ: Asia/Shanghai
+    volumes:
+      - ./data:/app/data
